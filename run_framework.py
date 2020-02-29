@@ -11,8 +11,10 @@ training_set, evaluation_set = dl.get_data_sets()
 input_units = len(np.reshape(next(training_set()), -1)) 
 output_units = input_units 
 architecture = [input_units, output_units]
+# Putting in the pixel range to help us normalize to a wanted range
+actual_pixel_range = {'low':0,'high':1}
 
 # Call our framework module from the nn_framework package and instantiate a high level ANN object 
-autoencoder = framework.ANN(model=None)
+autoencoder = framework.ANN(model=None, actual_pixel_range=actual_pixel_range)
 autoencoder.train(training_set)
 autoencoder.evaluate(evaluation_set)
