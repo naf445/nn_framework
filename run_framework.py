@@ -11,12 +11,15 @@ training_set, evaluation_set = dl.get_data_sets()
 
 # Get the number of neurons long our input and output layers will be for every layer and create the architecture,
 # which paints a picture of the number of layers in every layer of our network
-input_unit_size = len(np.reshape(next(training_set()), -1)) 
-output_unit_size = input_unit_size 
-architecture = [input_unit_size, output_unit_size]
-# because right now our model is only going to have inputs and outputs and no hidden layer our architecture is quite simple. it's just an input units and output units number.
-dense_layer = layer.Dense(num_inputs=architecture[0], num_outputs=architecture[1], activation_func=activation.tanh)
-layers = [dense_layer]
+input_nodes = len(np.reshape(next(training_set()), -1)) 
+output_nodes = input_nodes
+
+HL_nodes = [6, 3, 9]
+
+architecture = [input_nodes]+HL_nodes+[output_nodes]
+layers=[]
+for layer_index in range(len(architecture)-1):
+    layers.append(layer.Dense(num_inputs=architecture[layer_index], num_outputs=architecture[layer_index+1], activation_func=activation.tanh))
 # Putting in the pixel range to help us normalize to a wanted range
 actual_pixel_range = {'low':0,'high':1}
 

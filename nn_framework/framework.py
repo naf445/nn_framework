@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 """ Within this module, we will house the blueprints used to create our top level NN objects, an ANN"""
 
@@ -6,8 +7,8 @@ class ANN(object):
     def __init__(self, layers=None, actual_pixel_range=None):
         "Upon initiation of this ANN object, we must be supplied with a model which is a list of actual layers, such as a dense layer taken from layers.py"
         self.layers = layers  # list of actual layer object
-        self.n_training_datum_to_generate = 10
-        self.n_eval_datum_to_generate = 10 # number of training/eval data to generate
+        self.n_training_datum_to_generate = 10000
+        self.n_eval_datum_to_generate = 10000 # number of training/eval data to generate
         self.actual_pixel_range = actual_pixel_range 
         self.target_pixel_range = {'low':-0.5, 'high':0.5} 
        
@@ -16,16 +17,23 @@ class ANN(object):
         process a number of time, self.n_training_datum_to_generate. This process will get a
         piece of data, .ravel() it, normalize it, then run the forward propogate function on.
         See below for info on .forward_propogate()""" 
+        self.iteration_errors = []
         for number in range(self.n_training_datum_to_generate):
             current_training_datum = self.normalize_datum(next(training_set()).ravel()) # .ravel() unravels my np.array into a 1D version!
             output_vector = self.forward_propogate(current_training_datum)
-            print(output_vector)
+            self.iteration_errors.append(1) # Stand-in for an error measurement
+            if number % 1000 == 0 and number>0:
+                self.update_error_report(bin_size=1000, save_path='output_figs/testplot.png')
 
     def evaluate(self, eval_set):
         "Same as above but for eval data instead of training data"
+        self.iteration_errors = []
         for number in range(self.n_eval_datum_to_generate):
             current_eval_datum = self.normalize_datum(next(eval_set()).ravel())
             output_vector = self.forward_propogate(current_eval_datum)
+            self.iteration_errors.append(1)
+            if number % 1000 == 0 and number>0:
+                self.update_error_report(bin_size=1000, save_path='output_figs/testplot.png')
 
     def normalize_datum(self, un_normalized_datum):
         min_actual_value = self.actual_pixel_range["low"]
@@ -57,8 +65,23 @@ class ANN(object):
         by inserting an axis along the first dimenions, so it's [1, some_number]"""
         output_vector = input_vector.ravel() # this input vector is likely just a numpy array, which is different than the matrix we want. The np.shape probably shows (,5) or something instead of (1,5). The (1, 5) really is a one dimensional matrix and that is important for us to have!
         output_vector = output_vector[np.newaxis, :] # inserting an axis along first dimension
-        # Within the ANN_object.train() we call this function, and this function currently just
-        # operates on the first later and calls the layer's forward_propogate() function, then returns the results!
-        output_vector = self.layers[0].forward_propogate(output_vector) 
+        # Within the ANN_object.train() we call this function, which will take the input vector and send it through all the layers in a forward manner
+        for layer_index in range(len(self.layers)):
+            output_vector = self.layers[layer_index].forward_propogate(output_vector) 
         return output_vector.ravel()
         
+    def update_error_report(self, bin_size=1000, save_path=None):
+        """Finds the average error in bins of bin_size and generates a line plot showing this n_bin_ave_error over time
+        """
+        binned_iteration_errors = np.hsplit(self.iteration_errors, bin_size)
+        ave_errors = [np.average(iter_error_bin) for iter_error_bin in binned_iteration_errors]
+        graph = plt.plot(plot(x=ave_errors, y=range(len(ave_errors)))) 
+        plt.savefig(save_path) 
+
+
+
+
+
+
+
+
