@@ -17,11 +17,12 @@ class ANN(object):
         process a number of time, self.n_training_datum_to_generate. This process will get a
         piece of data, .ravel() it, normalize it, then run the forward propogate function on.
         See below for info on .forward_propogate()""" 
-        self.iteration_errors = []
+        self.iteration_errors = np.array([]) 
+        stand_in_error=1
         for number in range(self.n_training_datum_to_generate):
             current_training_datum = self.normalize_datum(next(training_set()).ravel()) # .ravel() unravels my np.array into a 1D version!
             output_vector = self.forward_propogate(current_training_datum)
-            self.iteration_errors.append(1) # Stand-in for an error measurement
+            self.iteration_errors = np.append(self.iteration_errors, stand_in_error) # Stand-in for an error measurement
             if number % 1000 == 0 and number>0:
                 self.update_error_report(bin_size=1000, save_path='output_figs/testplot.png')
 
