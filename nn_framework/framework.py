@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from random import randint
 
 """ Within this module, we will house the blueprints used to create our top level NN objects, an ANN"""
 
@@ -17,24 +18,23 @@ class ANN(object):
         process a number of time, self.n_training_datum_to_generate. This process will get a
         piece of data, .ravel() it, normalize it, then run the forward propogate function on.
         See below for info on .forward_propogate()""" 
-        self.iteration_errors = np.array([]) 
-        stand_in_error=1
-        for number in range(self.n_training_datum_to_generate):
+        self.iteration_errors_train = np.array([]) 
+        for number in range(1, self.n_training_datum_to_generate+1):
             current_training_datum = self.normalize_datum(next(training_set()).ravel()) # .ravel() unravels my np.array into a 1D version!
             output_vector = self.forward_propogate(current_training_datum)
-            self.iteration_errors = np.append(self.iteration_errors, stand_in_error) # Stand-in for an error measurement
-            if number % 1000 == 0 and number>0:
-                self.update_error_report(bin_size=1000, save_path='output_figs/testplot.png')
+            self.iteration_errors_train = np.append(self.iteration_errors_train, randint(-5, 5)) # Stand-in for an error measurement
+            if number % 1000 == 0:
+                self.update_error_report(train_or_eval='train', bin_num=number/1000, save_path='output_figs/binned_errors_train.png')
 
     def evaluate(self, eval_set):
         "Same as above but for eval data instead of training data"
-        self.iteration_errors = []
-        for number in range(self.n_eval_datum_to_generate):
+        self.iteration_errors_eval = np.array([]) 
+        for number in range(1, self.n_eval_datum_to_generate+1):
             current_eval_datum = self.normalize_datum(next(eval_set()).ravel())
             output_vector = self.forward_propogate(current_eval_datum)
-            self.iteration_errors.append(1)
+            self.iteration_errors_eval = np.append(self.iteration_errors_eval, randint(-5, 5)) 
             if number % 1000 == 0 and number>0:
-                self.update_error_report(bin_size=1000, save_path='output_figs/testplot.png')
+                self.update_error_report(train_or_eval='eval', bin_num=number/1000, save_path='output_figs/binned_errors_eval.png')
 
     def normalize_datum(self, un_normalized_datum):
         min_actual_value = self.actual_pixel_range["low"]
@@ -70,17 +70,25 @@ class ANN(object):
         for layer_index in range(len(self.layers)):
             output_vector = self.layers[layer_index].forward_propogate(output_vector) 
         return output_vector.ravel()
-        
-    def update_error_report(self, bin_size=1000, save_path=None):
+
+    def update_error_report(self, train_or_eval=None, bin_num=None, save_path=None):
         """Finds the average error in bins of bin_size and generates a line plot showing this n_bin_ave_error over time
         """
-        binned_iteration_errors = np.hsplit(self.iteration_errors, bin_size)
-        ave_errors = [np.average(iter_error_bin) for iter_error_bin in binned_iteration_errors]
-        graph = plt.plot(plot(x=ave_errors, y=range(len(ave_errors)))) 
-        plt.savefig(save_path) 
-
-
-
+        if train_or_eval=='train':
+            binned_iteration_errors = np.hsplit(self.iteration_errors_train, bin_num)
+            ave_errors = [np.average(iter_error_bin) for iter_error_bin in binned_iteration_errors]
+            graph = plt.plot(range(len(ave_errors)), ave_errors) 
+            plt.savefig(save_path) 
+            plt.cla()
+            plt.clf()
+        else:
+            binned_iteration_errors = np.hsplit(self.iteration_errors_eval, bin_num)
+            ave_errors = [np.average(iter_error_bin) for iter_error_bin in binned_iteration_errors]
+            graph = plt.plot(range(len(ave_errors)), ave_errors) 
+            plt.savefig(save_path)
+            plt.cla()
+            plt.clf()
+                    
 
 
 
